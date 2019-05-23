@@ -4,6 +4,7 @@ const gravatar = require("gravatar");
 const User = require("../../models/User");
 const bcrypt = require("bcryptjs");
 const Jwt = require("jsonwebtoken");
+const passport = require("passport");
 const validateRegisterInput = require("../../validation/register");
 const validateLoginInput = require("../../validation/login");
 const secretOrKey = require("../../config/keys").secretOrKey;
@@ -86,7 +87,7 @@ Router.post("/register", (req, res) => {
 //@desc login user
 //@access public
 
-Router.get("/login", (req, res) => {
+Router.post("/login", (req, res) => {
   const { errors, isValid } = validateLoginInput(req.body);
 
   if (!isValid) {
@@ -138,4 +139,29 @@ Router.get("/login", (req, res) => {
       });
   }
 });
+
+//@route api/users/current
+//@desc Get the current user
+//@access private
+
+Router.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    //Find user
+    User.findOne({ email: req.user.email })
+      .then(user => {
+        if (user) {
+          return res.json(user);
+        } else {
+          return res.status(404).json({ msg: "User not found" });
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        return res.json({ msg: "Error finding user" });
+      });
+  }
+);
+
 module.exports = Router;
