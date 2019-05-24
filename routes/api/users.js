@@ -96,7 +96,8 @@ Router.post("/login", (req, res) => {
     User.findOne({ email: req.body.email })
       .then(user => {
         if (!user) {
-          return res.status(404).json({ msg: "Error , user not found" });
+          errors.email = "User not found";
+          return res.status(404).json(errors);
         }
 
         //Compare passwords
