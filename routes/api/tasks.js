@@ -108,13 +108,14 @@ Router.put(
     } else {
       //Find task
 
-      Task.findOne(req.user.id)
+      Task.findOne({ user: req.user.id })
         .then(userTask => {
           //Check if current task with task_id is in the users task list
 
           const index = userTask.tasks
-            .map(task => task._id)
-            .indexOf(req.params.id);
+            .map(task => task._id.toString())
+            .indexOf(req.params.task_id.toString());
+
           if (index < 0) {
             return res.status(404).json({ msg: "No task exists with that id" });
           } else {
@@ -126,7 +127,16 @@ Router.put(
               (task.done = req.body.done);
 
             userTask.tasks[index] = task;
-            return res.json.userTask.tasks[index];
+            userTask
+              .save()
+              .then(updatedUserTask => {
+                return res.json(updatedUserTask);
+              })
+              .catch(err => {
+                return res
+                  .status(500)
+                  .json({ msg: "Unable to save or update task" });
+              });
           }
         })
         .catch(err => {
@@ -137,4 +147,54 @@ Router.put(
     }
   }
 );
+
+//@route api/tasks/delete/:task_id
+//desc Deletes a task
+//access private
+
+Router.delete(
+  "/delete/:task_id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    //Validation
+    const { errors, isValid } = validateTaskInput(req.body);
+
+    if (!isValid) {
+      return res.status(400).json(errors);
+    } else {
+      //Find task
+
+      Task.findOne({ user: req.user.id })
+        .then(userTask => {
+          //Check if current task with task_id is in the users task list
+
+          const index = userTask.tasks
+            .map(task => task._id.toString())
+            .indexOf(req.params.task_id.toString());
+
+          if (index < 0) {
+            return res.status(404).json({ msg: "No task exists with that id" });
+          } else {
+            userTask.tasks.splice(index, 1);
+            userTask
+              .save()
+              .then(updatedUserTask => {
+                return res.json(updatedUserTask);
+              })
+              .catch(err => {
+                return res
+                  .status(500)
+                  .json({ msg: "Unable to save or update task" });
+              });
+          }
+        })
+        .catch(err => {
+          return res
+            .status(404)
+            .json({ msg: "No task with that id was found" });
+        });
+    }
+  }
+);
+
 module.exports = Router;
