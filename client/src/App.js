@@ -6,18 +6,24 @@ import Index from "./components/Index";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import { store } from "./redux/store";
+
+import { Provider } from "react-redux";
 
 class App extends Component {
   render() {
     return (
-      <Router>
-        <Container>
-          <Route exact path="/" component={Index} />
-          <Route exact path="/login" component={Login} />
-          <Route exact path="/Register" component={Register} />
-          <Route exact path="/dashboard" component={Dashboard} />
-        </Container>
-      </Router>
+      <Provider store={store}>
+        <Router>
+          <div id="overlay" className="overlay" />
+          <Container fluid>
+            <Route exact path="/" component={Index} />
+            <Route exact path="/login" component={Login} />
+            <Route exact path="/Register" component={Register} />
+            <Route exact path="/dashboard" component={Dashboard} />
+          </Container>
+        </Router>
+      </Provider>
     );
   }
 }

@@ -7,7 +7,7 @@ import WebFont from "webfontloader";
 
 WebFont.load({
   google: {
-    families: ["Kanit", "Dancing Script", "sans-serif"]
+    families: ["Kanit", "Dancing Script", "Quattrocento Sans", "sans-serif"]
   }
 });
 ReactDOM.render(<App />, document.getElementById("root"));

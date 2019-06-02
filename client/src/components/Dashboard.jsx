@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-
+import hideUI from "../utils/hideUI";
 class Dashboard extends Component {
   render() {
     return (
@@ -7,6 +7,9 @@ class Dashboard extends Component {
         <p>Welcome to dashboard</p>
       </div>
     );
+  }
+  componentDidMount() {
+    hideUI();
   }
 }
 
