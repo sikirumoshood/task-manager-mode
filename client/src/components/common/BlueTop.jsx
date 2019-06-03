@@ -8,7 +8,7 @@ export default function BlueTop({ text }) {
         params={{
           particles: {
             number: {
-              value: 30
+              value: 50
             },
             size: {
               value: 2
@@ -22,7 +22,7 @@ export default function BlueTop({ text }) {
               }
             }
           },
-          retina_detect: false
+          retina_detect: true
         }}
       />
     </div>
