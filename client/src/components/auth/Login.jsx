@@ -8,6 +8,7 @@ import { withRouter } from "react-router-dom";
 import { connect } from "react-redux";
 import { loginUser } from "../../redux/actions/authAction";
 import { PropTypes } from "prop-types";
+import { Link } from "react-router-dom";
 
 class Login extends Component {
   constructor(props) {
@@ -64,12 +65,17 @@ class Login extends Component {
             <Button
               style={{
                 backgroundColor: "blue",
-                borderStyle: "none"
+                borderStyle: "none",
+                marginTop: "3%"
               }}
-              size="lg"
+              size="sm"
             >
               Login
             </Button>
+            <p className="mt-3">
+              Don't have an account yet ? register{" "}
+              <Link to="/register">here</Link>
+            </p>
           </form>
         </div>
       </React.Fragment>
