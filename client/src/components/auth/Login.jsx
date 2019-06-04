@@ -48,7 +48,7 @@ class Login extends Component {
               onChange={this.handleChange}
               error={this.state.errors.email}
               value={this.state.email}
-              isRequired={true}
+              isrequired={true}
             />
 
             <TextField
@@ -59,7 +59,7 @@ class Login extends Component {
               onChange={this.handleChange}
               error={this.state.errors.password}
               value={this.state.password}
-              isRequired={true}
+              isrequired={true}
             />
 
             <Button
@@ -84,6 +84,10 @@ class Login extends Component {
 
   componentDidMount() {
     hideUI();
+    //Check if the user is already logged in
+    if (this.props.auth.isAuthenticated) {
+      this.props.history.push("/dashboard");
+    }
     animateTextField();
   }
   componentWillReceiveProps(nextProps) {

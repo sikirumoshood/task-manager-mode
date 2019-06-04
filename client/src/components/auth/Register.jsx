@@ -110,6 +110,9 @@ class Register extends Component {
 
   componentDidMount() {
     hideUI();
+    if (this.props.auth.isAuthenticated) {
+      this.props.history.push("/dashboard");
+    }
     animateTextField();
   }
   componentWillReceiveProps(nextProps) {

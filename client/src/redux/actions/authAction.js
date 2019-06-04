@@ -44,6 +44,18 @@ export const loginUser = (userData, history) => dispatch => {
     });
 };
 
+export const logoutUser = history => dispatch => {
+  if (localStorage.getItem("token")) {
+    localStorage.removeItem("token");
+  }
+  dispatch({
+    type: SET_CURRENT_USER,
+    payload: {
+      user: {}
+    }
+  });
+  history.push("/login");
+};
 export const setCurrentUser = user => dispatch => {
   dispatch({
     type: SET_CURRENT_USER,

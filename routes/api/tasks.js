@@ -12,6 +12,61 @@ Router.get("/test", (req, res) => {
   res.json({ msg: "Tasks route works" });
 });
 
+//@route api/tasks/recent
+//@desc get the 5 most recent tasks for the current user
+//@access private
+
+Router.get(
+  "/recent",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Task.findOne({ user: req.user.id })
+      .then(userTasks => {
+        if (userTasks) {
+          const stats = {};
+          const tasks = userTasks.tasks;
+          stats.total = tasks.length;
+          stats.completed = tasks.filter(task => task.done === true).length;
+          stats.uncompleted = tasks.filter(task => task.done === false).length;
+          return res.json({ tasks: tasks.slice(0, 6), stats });
+        }
+        return res.status(404).json({ error: "User not found" });
+      })
+      .catch(err => {
+        console.log(err);
+        return res.status(500).json({ error: "Fetching user data from db" });
+      });
+  }
+);
+
+//@route api/tasks/stats
+//@desc get user task statistics
+//@access private
+
+Router.get(
+  "/stats",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Task.findOne({ user: req.user.id })
+      .then(userTasks => {
+        if (userTasks) {
+          const stats = {};
+          const tasks = userTasks.tasks;
+          stats.total = tasks.length;
+          stats.completed = tasks.filter(task => task.done === true).length;
+          stats.uncompleted = tasks.filter(task => task.done === false).length;
+
+          return res.json(stats);
+        }
+        return res.status(404).json({ error: "User not found " });
+      })
+      .catch(err => {
+        console.log(err);
+        return res.status(500).json({ error: "Error fetching user data" });
+      });
+  }
+);
+
 //@route api/tasks/
 //@desc get tasks for the current user
 //@access private

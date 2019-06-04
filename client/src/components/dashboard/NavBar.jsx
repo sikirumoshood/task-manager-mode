@@ -6,7 +6,8 @@ import {
   NavbarBrand,
   Nav,
   NavItem,
-  NavLink
+  NavLink,
+  Button
 } from "reactstrap";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -48,13 +49,14 @@ class NavBar extends Component {
           </NavbarToggler>
           <Collapse isOpen={this.state.isOpen} navbar>
             <Nav className="ml-auto" navbar>
-              <NavItem>
-                <NavLink>User name</NavLink>
-              </NavItem>
               <NavItem className="float-right">
-                <NavLink href="/logout" style={{ color: "white" }}>
+                <Button
+                  type="button"
+                  onClick={this.props.onLogout}
+                  style={{ color: "white", backgroundColor: "transparent" }}
+                >
                   Logout
-                </NavLink>
+                </Button>
               </NavItem>
             </Nav>
           </Collapse>
