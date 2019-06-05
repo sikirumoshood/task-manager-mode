@@ -1,6 +1,21 @@
 import axios from "axios";
 import { GET_TASKS, GET_ERRORS, GET_STATS } from "./types";
 
+export const createTask = data => dispatch => {
+  axios
+    .post("/api/tasks/create", data)
+    .then(res => {
+      console.log(res.data);
+      alert("Task added SUCCESSFULLY!");
+      dispatch(getTasks());
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
 //TODO: GET TOTAL COUNT OF TASKS:CREATE A ROUTE FOR IT
 //TODO: GET TOTAL COUNT OF COMPLETED AND UNCOMPLETED
 //TODO: GET THE MOST RECENT 5 TASKS

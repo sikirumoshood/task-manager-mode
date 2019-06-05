@@ -3,7 +3,7 @@ import hideUI from "../../utils/hideUI";
 import NavBar from "./NavBar";
 import img from "../../img/pic.jpg";
 import ImageWidget from "./ImageWidget";
-import { Row, Col, Button } from "reactstrap";
+import { Row, Col, Button, Modal, ModalHeader, ModalBody } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Chart from "chart.js";
 import { PropTypes } from "prop-types";
@@ -29,8 +29,83 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import TotalTaskWidget from "../tasks/TotalTaskWidget";
 import TableWidget from "./TableWidget";
 import isEmpty from "../../utils/isEmpty";
+import TextField from "../common/TextField";
+import animateTextField from "../../utils/animateTextField";
+import { createTask } from "../../redux/actions/taskAction";
 
 class Dashboard extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      title: "",
+      description: "",
+      deadlineDate: "",
+      done: false,
+      modalIsOpen: false,
+      errors: {}
+    };
+  }
+
+  toggle = () => {
+    this.setState({ modalIsOpen: !this.state.modalIsOpen });
+  };
+  handleSubmit = e => {
+    e.preventDefault();
+    const data = {};
+    data.title = this.state.title;
+    data.description = this.state.description;
+    data.deadlineDate = this.state.deadlineDate;
+    data.done = false;
+    this.props.createTask(data);
+  };
+  handleChange = e => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+  renderModal = () => {
+    return (
+      <div>
+        <Modal isOpen={this.state.modalIsOpen} toggle={this.toggle} centered>
+          <ModalHeader toggle={this.toggle}>Add new task</ModalHeader>
+          <ModalBody style={{ backgroundColor: "#F2F7F6" }}>
+            <form onSubmit={this.handleSubmit}>
+              <TextField
+                label="Title"
+                type="text"
+                name="title"
+                placeholder="Enter task title..."
+                onChange={this.handleChange}
+                error={this.state.errors.title}
+                value={this.state.title}
+                isrequired={true}
+              />
+              <TextField
+                label="Description"
+                type="text"
+                name="description"
+                placeholder="Enter task description..."
+                onChange={this.handleChange}
+                error={this.state.errors.description}
+                value={this.state.description}
+                isrequired={true}
+              />
+              <TextField
+                label="Deadline date"
+                type="date"
+                name="deadlineDate"
+                placeholder="Enter task deadline date..."
+                onChange={this.handleChange}
+                error={this.state.errors.deadlineDate}
+                value={this.state.deadlineDate}
+                isrequired={true}
+              />
+
+              <Button color="primary">Submit</Button>
+            </form>
+          </ModalBody>
+        </Modal>
+      </div>
+    );
+  };
   renderLeftPane = () => {
     return (
       <Col id="left-pane" className="col-md-3">
@@ -105,29 +180,35 @@ class Dashboard extends Component {
           />{" "}
           Operations
           <br />
-          <Row>
-            <Button type="button" color="primary" size="sm" className="m-4">
-              <FontAwesomeIcon icon={faPlus} style={{ color: "white" }} /> Add
-              task
-            </Button>
-          </Row>{" "}
-          <FontAwesomeIcon icon={faListAlt} style={{ color: "purple" }} /> All
-          tasks
-          <br />
-          <Row className="m-2 p-3" style={{ width: "100%" }}>
-            {isEmpty(this.props.task.tasks) ? (
-              <FontAwesomeIcon
-                className="m-auto"
-                icon={faSpinner}
-                spin
-                style={{ color: "blue" }}
-              />
-            ) : (
-              <TableWidget tasks={this.props.task.tasks} />
-            )}
-          </Row>
-          <Row />
         </p>
+        <Row>
+          <Button
+            onClick={this.toggle}
+            type="button"
+            color="primary"
+            size="sm"
+            className="m-4"
+          >
+            <FontAwesomeIcon icon={faPlus} style={{ color: "white" }} /> Add
+            task
+          </Button>
+        </Row>{" "}
+        <FontAwesomeIcon icon={faListAlt} style={{ color: "purple" }} /> All
+        tasks
+        <br />
+        <Row className="m-2 p-3" style={{ width: "100%" }}>
+          {isEmpty(this.props.task.tasks) ? (
+            <FontAwesomeIcon
+              className="m-auto"
+              icon={faSpinner}
+              spin
+              style={{ color: "blue" }}
+            />
+          ) : (
+            <TableWidget tasks={this.props.task.tasks} />
+          )}
+        </Row>
+        <Row />
         {this.renderPaginationButtons()}
       </Col>
     );
@@ -167,8 +248,10 @@ class Dashboard extends Component {
   render() {
     return (
       <div>
+        {this.renderModal()}
+
         <NavBar onLogout={this.handleLogout} />
-        <ImageWidget imgUrl={img} />
+        <ImageWidget imgUrl={this.props.auth.user.avatar} />
         <div id="dashboard-pane">
           <p style={{ marginTop: "6%", marginBottom: "3%" }}>
             <FontAwesomeIcon icon={faColumns} style={{ color: "purple" }} />{" "}
@@ -210,8 +293,13 @@ class Dashboard extends Component {
       this.props.history.push("/login");
     }
     this.props.getTasks();
-
+    animateTextField();
     this.createChart();
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.errors) {
+      this.setState({ errors: nextProps.errors });
+    }
   }
 
   createChart() {
@@ -270,14 +358,16 @@ class Dashboard extends Component {
 
 Dashboard.propTypes = {
   auth: PropTypes.object.isRequired,
-  task: PropTypes.object.isRequired
+  task: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({
   auth: state.auth,
-  task: state.task
+  task: state.task,
+  errors: state.errors
 });
 export default connect(
   mapStateToProps,
-  { getTasks, logoutUser }
+  { getTasks, logoutUser, createTask }
 )(withRouter(Dashboard));

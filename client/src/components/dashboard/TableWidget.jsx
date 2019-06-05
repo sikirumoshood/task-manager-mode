@@ -30,7 +30,7 @@ export default function TableWidget({ tasks }) {
         )}
       </td>
       <td>
-        <Moment format="DD/MM/YYYY">{task.created_at}</Moment>
+        <Moment format="Mo/MMM/YYYY">{task.created_at}</Moment>
       </td>
       <td>
         <div>

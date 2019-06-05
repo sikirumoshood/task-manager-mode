@@ -4,7 +4,7 @@ export default () => {
     //animate progress bar
     nodes[i].addEventListener("focus", () => {
       //get class attribute
-
+      alert("focused");
       let nodeName = nodes[i].getAttribute("name");
       nodeName += "-p";
       const elem = document.querySelector(`div[class~='${nodeName}']>div`);

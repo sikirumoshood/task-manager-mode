@@ -8,17 +8,16 @@ export default function BlueTop({ text }) {
         params={{
           particles: {
             number: {
-              value: 50
+              value: 100
             },
             size: {
-              value: 2
+              value: 6
             }
           },
           interactivity: {
             events: {
               onhover: {
-                enable: false,
-                mode: "repulse"
+                enable: false
               }
             }
           },
