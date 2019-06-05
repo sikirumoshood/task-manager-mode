@@ -130,7 +130,7 @@ input[type="password"]:focus {
   border-style: none;
   box-shadow: 1px 1px 1px grey;
   border-radius: 7px;
-  margin-right: 10px;
+
   padding: 10px;
 }
 #tt-w {

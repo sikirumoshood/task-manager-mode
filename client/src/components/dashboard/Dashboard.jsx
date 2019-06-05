@@ -391,8 +391,8 @@ class Dashboard extends Component {
           </p>
           <Row>{this.renderLeftPane()}</Row>
           <Row>{this.renderRightPane()}</Row>
-          <Row style={{ width: "96%", marginLeft: "2px" }}>
-            <Col id="bottom-pane" className="col-md-12 m-auto">
+          <Row style={{ width: "100%" }}>
+            <Col id="bottom-pane" className="col-md-11 m-auto">
               <p className="text-muted">
                 {" "}
                 <FontAwesomeIcon
