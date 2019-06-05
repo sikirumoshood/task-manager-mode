@@ -67,6 +67,77 @@ Router.get(
   }
 );
 
+//@route api/tasks/:task_id
+//@desc get a particular task
+//@access private
+
+Router.get(
+  "/:task_id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Task.findOne({ user: req.user.id })
+      .then(userTasks => {
+        if (userTasks) {
+          //extract a particular task
+          const index = userTasks.tasks
+            .map(task => task._id.toString())
+            .indexOf(req.params.task_id.toString());
+
+          if (!(index < 0)) {
+            return res.json(userTasks.tasks[index]);
+          } else {
+            return res
+              .status(404)
+              .json({ Error: "NO task with the provided id" });
+          }
+        }
+        return res.status(404).json({ Error: "User not identified" });
+      })
+      .catch(err => {
+        return res.status(404).json({ msg: "Error fetching tasks" });
+      });
+  }
+);
+
+//@route api/tasks/markdone/:task_id
+//@desc mark task as completed for the current user
+//@access private
+
+Router.put(
+  "/markdone/:task_id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Task.findOne({ user: req.user.id })
+      .then(userTask => {
+        //Check if current task with task_id is in the users task list
+
+        const index = userTask.tasks
+          .map(task => task._id.toString())
+          .indexOf(req.params.task_id.toString());
+
+        if (index < 0) {
+          return res.status(404).json({ msg: "No task exists with that id" });
+        } else {
+          let task = userTask.tasks[index];
+
+          
+            (task.done = true);
+
+          userTask.tasks[index] = task;
+          userTask
+            .save()
+            .then(updatedUserTask => {
+              return res.json(updatedUserTask);
+            })
+            .catch(err => {
+              return res
+                .status(500)
+                .json({ msg: "Unable to save or update task" });
+            });
+        }
+      });
+  }
+);
 //@route api/tasks/
 //@desc get tasks for the current user
 //@access private
@@ -211,13 +282,9 @@ Router.delete(
   "/delete/:task_id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    //Validation
-    const { errors, isValid } = validateTaskInput(req.body);
-
-    if (!isValid) {
-      return res.status(400).json(errors);
-    } else {
-      //Find task
+    
+  
+      //Find task to delete
 
       Task.findOne({ user: req.user.id })
         .then(userTask => {
@@ -248,7 +315,7 @@ Router.delete(
             .status(404)
             .json({ msg: "No task with that id was found" });
         });
-    }
+    
   }
 );
 

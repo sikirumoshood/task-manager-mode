@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import hideUI from "../../utils/hideUI";
 import NavBar from "./NavBar";
-import img from "../../img/pic.jpg";
 import ImageWidget from "./ImageWidget";
 import { Row, Col, Button, Modal, ModalHeader, ModalBody } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -31,7 +30,14 @@ import TableWidget from "./TableWidget";
 import isEmpty from "../../utils/isEmpty";
 import TextField from "../common/TextField";
 import animateTextField from "../../utils/animateTextField";
-import { createTask } from "../../redux/actions/taskAction";
+import {
+  createTask,
+  editTask,
+  deleteTask,
+  taskDone
+} from "../../redux/actions/taskAction";
+import axios from "axios";
+import moment from "moment";
 
 class Dashboard extends Component {
   constructor(props) {
@@ -41,14 +47,24 @@ class Dashboard extends Component {
       description: "",
       deadlineDate: "",
       done: false,
-      modalIsOpen: false,
-      errors: {}
+      addTaskModalIsOpen: false,
+      editTaskModalIsOpen: false,
+      errors: {},
+      taskToEdit: {}
     };
   }
 
-  toggle = () => {
-    this.setState({ modalIsOpen: !this.state.modalIsOpen });
+  resetState = () => {
+    this.setState({ title: "", description: "", deadlineDate: "" });
   };
+  toggleAddTaskModal = () => {
+    this.resetState();
+    this.setState({ addTaskModalIsOpen: !this.state.addTaskModalIsOpen });
+  };
+  toggleEditTaskModal = () => {
+    this.setState({ editTaskModalIsOpen: !this.state.editTaskModalIsOpen });
+  };
+
   handleSubmit = e => {
     e.preventDefault();
     const data = {};
@@ -57,15 +73,111 @@ class Dashboard extends Component {
     data.deadlineDate = this.state.deadlineDate;
     data.done = false;
     this.props.createTask(data);
+    this.resetState(); //Clear state fields
+  };
+
+  handleEditSubmit = e => {
+    e.preventDefault();
+    this.props.editTask(this.state.taskToEdit);
+  };
+
+  handleTaskDone = task_id => {
+    const resp = window.confirm("Are you sure to mark task as COMPLETED? ");
+    if (resp) {
+      this.props.taskDone(task_id);
+    }
+  };
+  fetchDataToEdit = task_id => {
+    axios
+      .get(`/api/tasks/${task_id}`)
+      .then(res => {
+        this.setState({ taskToEdit: res.data });
+        this.toggleEditTaskModal();
+        //Clear errors object
+        this.setState({ errors: {} });
+      })
+      .catch(err => console.log(err.response.data));
+  };
+  handleDelete = task_id => {
+    //CALL DELETE ACTION FROM TASK_ACTIONS
+
+    const resp = window.confirm("Are you sure about this");
+    if (resp) {
+      this.props.deleteTask(task_id);
+    }
   };
   handleChange = e => {
     this.setState({ [e.target.name]: e.target.value });
   };
-  renderModal = () => {
+  handleEditChange = e => {
+    const taskToEdit = { ...this.state.taskToEdit };
+    taskToEdit[e.target.name] = e.target.value;
+    this.setState({ taskToEdit });
+  };
+
+  renderEditTaskModal = () => {
     return (
       <div>
-        <Modal isOpen={this.state.modalIsOpen} toggle={this.toggle} centered>
-          <ModalHeader toggle={this.toggle}>Add new task</ModalHeader>
+        {" "}
+        <Modal
+          isOpen={this.state.editTaskModalIsOpen}
+          toggle={this.toggleEditTaskModal}
+          centered
+        >
+          <ModalHeader toggle={this.toggle}>Edit task</ModalHeader>
+          <ModalBody style={{ backgroundColor: "#F2F7F6" }}>
+            <form onSubmit={this.handleEditSubmit}>
+              <TextField
+                label="Title"
+                type="text"
+                name="title"
+                placeholder="Enter task title..."
+                onChange={this.handleEditChange}
+                error={this.state.errors.title}
+                value={this.state.taskToEdit.title}
+                isrequired={true}
+              />
+              <TextField
+                label="Description"
+                type="text"
+                name="description"
+                placeholder="Enter task description..."
+                onChange={this.handleEditChange}
+                error={this.state.errors.description}
+                value={this.state.taskToEdit.description}
+                isrequired={true}
+              />
+              <TextField
+                label="Deadline date"
+                type="date"
+                name="deadlineDate"
+                placeholder="Enter task deadline date..."
+                onChange={this.handleEditChange}
+                error={this.state.errors.deadlineDate}
+                value={moment(this.state.taskToEdit.deadlineDate).format(
+                  "YYYY-MM-DD"
+                )}
+                isrequired={true}
+              />
+
+              <Button color="primary">Submit</Button>
+            </form>
+          </ModalBody>
+        </Modal>
+      </div>
+    );
+  };
+  renderAddTaskModal = () => {
+    return (
+      <div>
+        <Modal
+          isOpen={this.state.addTaskModalIsOpen}
+          toggle={this.toggleAddTaskModal}
+          centered
+        >
+          <ModalHeader toggle={this.toggleAddTaskModal}>
+            Add new task
+          </ModalHeader>
           <ModalBody style={{ backgroundColor: "#F2F7F6" }}>
             <form onSubmit={this.handleSubmit}>
               <TextField
@@ -108,70 +220,76 @@ class Dashboard extends Component {
   };
   renderLeftPane = () => {
     return (
-      <Col id="left-pane" className="col-md-3">
+      <Col id="left-pane" className="col-md-11">
         <p className="text-muted">
           {" "}
           <FontAwesomeIcon icon={faTasks} style={{ color: "purple" }} /> Task
           summary{" "}
         </p>
+        <Row className="justify-content-center">
+          <Col className="col-md-3">
+            <TotalTaskWidget
+              color="purple"
+              totalTasks={
+                isEmpty(this.props.task.stats.total) ? (
+                  <FontAwesomeIcon
+                    icon={faSpinner}
+                    spin
+                    style={{ color: "white" }}
+                  />
+                ) : (
+                  this.props.task.stats.total
+                )
+              }
+              icon={faReceipt}
+              label="Total tasks"
+            />
+          </Col>
 
-        <TotalTaskWidget
-          color="purple"
-          totalTasks={
-            isEmpty(this.props.task.stats.total) ? (
-              <FontAwesomeIcon
-                icon={faSpinner}
-                spin
-                style={{ color: "white" }}
-              />
-            ) : (
-              this.props.task.stats.total
-            )
-          }
-          icon={faReceipt}
-          label="Total tasks"
-        />
-
-        <TotalTaskWidget
-          color="green"
-          totalTasks={
-            isEmpty(this.props.task.stats.completed) ? (
-              <FontAwesomeIcon
-                icon={faSpinner}
-                spin
-                style={{ color: "white" }}
-              />
-            ) : (
-              this.props.task.stats.completed
-            )
-          }
-          icon={faCheckCircle}
-          label="Completed tasks"
-        />
-
-        <TotalTaskWidget
-          color="#5E0002"
-          totalTasks={
-            isEmpty(this.props.task.stats.uncompleted) ? (
-              <FontAwesomeIcon
-                icon={faSpinner}
-                spin
-                style={{ color: "white" }}
-              />
-            ) : (
-              this.props.task.stats.uncompleted
-            )
-          }
-          icon={faTimesCircle}
-          label="Uncompleted tasks"
-        />
+          <Col className="col-md-3">
+            <TotalTaskWidget
+              color="green"
+              totalTasks={
+                isEmpty(this.props.task.stats.completed) ? (
+                  <FontAwesomeIcon
+                    icon={faSpinner}
+                    spin
+                    style={{ color: "white" }}
+                  />
+                ) : (
+                  this.props.task.stats.completed
+                )
+              }
+              icon={faCheckCircle}
+              label="Completed tasks"
+            />
+          </Col>
+          <Col className="col-md-3">
+            <TotalTaskWidget
+              color="#5E0002"
+              totalTasks={
+                isEmpty(this.props.task.stats.uncompleted) ? (
+                  <FontAwesomeIcon
+                    icon={faSpinner}
+                    spin
+                    style={{ color: "white" }}
+                  />
+                ) : (
+                  this.props.task.stats.uncompleted
+                )
+              }
+              icon={faTimesCircle}
+              label="Uncompleted tasks"
+            />
+          </Col>
+        </Row>
       </Col>
     );
   };
 
   renderRightPane = () => {
     return (
-      <Col id="right-pane" className="col-md-8">
+      <Col id="right-pane" className="col-md-11">
         <p className="text-muted">
           {" "}
           <FontAwesomeIcon
@@ -183,7 +301,7 @@ class Dashboard extends Component {
         </p>
         <Row>
           <Button
-            onClick={this.toggle}
+            onClick={this.toggleAddTaskModal}
             type="button"
             color="primary"
             size="sm"
@@ -205,7 +323,12 @@ class Dashboard extends Component {
               style={{ color: "blue" }}
             />
           ) : (
-            <TableWidget tasks={this.props.task.tasks} />
+            <TableWidget
+              tasks={this.props.task.tasks}
+              ondelete={this.handleDelete}
+              onedit={this.fetchDataToEdit}
+              ontaskdone={this.handleTaskDone}
+            />
           )}
         </Row>
         <Row />
@@ -248,12 +371,15 @@ class Dashboard extends Component {
   render() {
     return (
       <div>
-        {this.renderModal()}
+        {this.renderAddTaskModal()}
+        {this.renderEditTaskModal()}
 
         <NavBar onLogout={this.handleLogout} />
-        <ImageWidget imgUrl={this.props.auth.user.avatar} />
+        <ImageWidget
+          imgUrl={this.props.auth.loading ? "" : this.props.auth.user.avatar}
+        />
         <div id="dashboard-pane">
-          <p style={{ marginTop: "6%", marginBottom: "3%" }}>
+          <p style={{ marginTop: "6%", marginBottom: "3%", marginLeft: "4%" }}>
             <FontAwesomeIcon icon={faColumns} style={{ color: "purple" }} />{" "}
             {"  "}
             Dashboard
@@ -263,10 +389,8 @@ class Dashboard extends Component {
             />{" "}
             {this.props.auth.loading ? "loading..." : this.props.auth.user.name}
           </p>
-          <Row>
-            {this.renderLeftPane()}
-            {this.renderRightPane()}
-          </Row>
+          <Row>{this.renderLeftPane()}</Row>
+          <Row>{this.renderRightPane()}</Row>
           <Row style={{ width: "96%", marginLeft: "2px" }}>
             <Col id="bottom-pane" className="col-md-12 m-auto">
               <p className="text-muted">
@@ -369,5 +493,5 @@ const mapStateToProps = state => ({
 });
 export default connect(
   mapStateToProps,
-  { getTasks, logoutUser, createTask }
+  { getTasks, logoutUser, createTask, editTask, deleteTask, taskDone }
 )(withRouter(Dashboard));

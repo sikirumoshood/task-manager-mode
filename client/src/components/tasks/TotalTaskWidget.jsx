@@ -8,10 +8,10 @@ export default function TotalTaskWidget({ icon, totalTasks, color, label }) {
         <p id="t-label">{label}</p>
         <FontAwesomeIcon
           icon={icon}
-          style={{ fontSize: 30, opacity: "0.7", color: "white" }}
+          style={{ fontSize: 19, opacity: "0.8", color: "white" }}
         />
       </Col>
-      <Col className="col-md-4">
+      <Col className="col-md-5 ml-3 ">
         <div id="n-tasks">{totalTasks}</div>
       </Col>
     </Row>

@@ -9,6 +9,7 @@ import { connect } from "react-redux";
 import { loginUser } from "../../redux/actions/authAction";
 import { PropTypes } from "prop-types";
 import { Link } from "react-router-dom";
+import Zoom from "react-reveal/Zoom";
 
 class Login extends Component {
   constructor(props) {
@@ -36,7 +37,10 @@ class Login extends Component {
       <React.Fragment>
         <BlueTop text="Login Area" />
         <div id="loginArea">
-          <h3>General Task Manager (GTM) </h3>
+          <Zoom left cascade>
+            {" "}
+            <h3>General Task Manager (GTM) </h3>
+          </Zoom>
           <p>Login Here</p>
           <br />
           <form onSubmit={this.handleSubmit} noValidate>

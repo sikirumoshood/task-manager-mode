@@ -1,6 +1,48 @@
 import axios from "axios";
 import { GET_TASKS, GET_ERRORS, GET_STATS } from "./types";
 
+export const editTask = data => dispatch => {
+  axios
+    .put(`/api/tasks/edit/${data._id}`, data)
+    .then(res => {
+      alert("Task edited SUCCESSFULLY!");
+      dispatch(getTasks());
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
+export const taskDone = task_id => dispatch => {
+  axios
+    .put(`/api/tasks/markdone/${task_id}`)
+    .then(res => {
+      alert("Task marked as COMPLETED!");
+      dispatch(getTasks());
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
+export const deleteTask = task_id => dispatch => {
+  axios
+    .delete(`/api/tasks/delete/${task_id}`)
+    .then(res => {
+      alert("Task deleted SUCCESSFULLY!");
+      dispatch(getTasks());
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
 export const createTask = data => dispatch => {
   axios
     .post("/api/tasks/create", data)

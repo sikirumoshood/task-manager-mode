@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Progress } from "reactstrap";
 import isEmpty from "../../utils/isEmpty";
 import PropTypes from "prop-types";
+import Zoom from "react-reveal/Zoom";
 
 class TextField extends Component {
   render() {
@@ -39,7 +40,9 @@ class TextField extends Component {
         <div>
           {this.props.error && (
             <span style={{ color: "red" }}>
-              <small>{this.props.error}</small>
+              <Zoom delay="300" left cascade>
+                <small>{this.props.error}</small>
+              </Zoom>
             </span>
           )}
         </div>

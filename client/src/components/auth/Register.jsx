@@ -9,6 +9,7 @@ import { withRouter } from "react-router-dom";
 import { registerUser } from "../../redux/actions/authAction";
 import { PropTypes } from "prop-types";
 import { Link } from "react-router-dom";
+import Zoom from "react-reveal/Zoom";
 
 class Register extends Component {
   constructor() {
@@ -42,7 +43,9 @@ class Register extends Component {
       <React.Fragment>
         <BlueTop text="Registration Area" />
         <div id="registerArea">
-          <h3>General Task Manager (GTM) </h3>
+          <Zoom left cascade>
+            <h3>General Task Manager (GTM) </h3>
+          </Zoom>
           <p>Register</p>
           <br />
           <form onSubmit={this.handleSubmit} noValidate>
