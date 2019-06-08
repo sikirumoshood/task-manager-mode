@@ -39,6 +39,7 @@ import {
 } from "../../redux/actions/taskAction";
 import axios from "axios";
 import moment from "moment";
+import { Bar } from "react-chartjs-2";
 
 class Dashboard extends Component {
   constructor(props) {
@@ -54,7 +55,9 @@ class Dashboard extends Component {
       taskToEdit: {},
       skipValue: 10,
       next: false,
-      prev: false
+      prev: false,
+      stats: {},
+      chartData: {}
     };
   }
 
@@ -438,9 +441,24 @@ class Dashboard extends Component {
                 />{" "}
                 Chart area
               </p>
-              <canvas id="myChart" style={{ width: "400px", height: "100px" }}>
-                Not supported
-              </canvas>
+              <div />
+              <Bar
+                width={200}
+                height={50}
+                data={this.state.chartData}
+                options={{
+                  scales: {
+                    yAxes: [
+                      {
+                        ticks: {
+                          beginAtZero: true,
+                          min: 0
+                        }
+                      }
+                    ]
+                  }
+                }}
+              />
             </Col>
           </Row>
         </div>
@@ -448,14 +466,29 @@ class Dashboard extends Component {
     );
   }
 
+  updateChartData = () => {
+    this.setState({
+      chartData: {
+        labels: ["Complete", "Uncompleted"],
+        datasets: [
+          {
+            label: "TASK ANALYSIS",
+            data: [this.state.stats.completed, this.state.stats.uncompleted],
+            backgroundColor: ["rgba(255,105,145,0.6)", "rgba(155,100,210,0.6)"]
+          }
+        ]
+      }
+    });
+  };
   componentDidMount() {
     hideUI();
     if (!this.props.auth.isAuthenticated) {
       this.props.history.push("/login");
     }
     this.props.getTasks();
+
     animateTextField();
-    this.createChart();
+    // this.createChart();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
@@ -464,33 +497,54 @@ class Dashboard extends Component {
     if (nextProps.task) {
       this.setState({
         next: nextProps.task.paginate.next,
-        prev: nextProps.task.paginate.prev
+        prev: nextProps.task.paginate.prev,
+        stats: nextProps.task.stats,
+        chartData: {
+          labels: ["Complete", "Uncompleted"],
+          datasets: [
+            {
+              label: "TASK GRAPH",
+              data: [
+                nextProps.task.stats.completed,
+                nextProps.task.stats.uncompleted
+              ],
+              backgroundColor: [
+                "rgba(255,105,145,0.6)",
+                "rgba(155,100,210,0.6)"
+              ]
+            }
+          ]
+        }
       });
+      // this.updateChartData();
     }
   }
 
-  createChart() {
+  //TODO SYNCHRONIZE CHART
+  createChart = () => {
     const ctx = document.getElementById("myChart").getContext("2d");
 
     var chart = new Chart(ctx, {
-      type: "line",
+      type: "bar",
       data: {
-        labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
         datasets: [
           {
-            fill: false, //Don't show area under curve
-            label: "Vote count",
-            data: [12, 19, 3, 5, 2, 3],
+            fill: true, //Don't show area under curve
+            label: "COMPLETED-TASKS",
+            data: [this.state.stats.completed],
 
-            borderColor: [
-              "rgba(255, 99, 132, 1)",
-              "rgba(54, 162, 235, 1)",
-              "rgba(255, 206, 86, 1)",
-              "rgba(75, 192, 192, 1)",
-              "rgba(153, 102, 255, 1)",
-              "rgba(255, 159, 64, 1)"
-            ],
-            borderWidth: 5
+            borderColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
+            backgroundColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
+            borderWidth: 2
+          },
+          {
+            fill: true, //Don't show area under curve
+            label: "UNCOMPLETED-TASKS",
+            data: [this.state.stats.uncompleted],
+
+            borderColor: ["rgba(54, 162, 235, 1)"],
+            backgroundColor: ["rgba(54, 162, 235, 1)"],
+            borderWidth: 2
           }
         ]
       },
@@ -506,7 +560,7 @@ class Dashboard extends Component {
         }
       }
     });
-  }
+  };
 }
 
 Dashboard.propTypes = {

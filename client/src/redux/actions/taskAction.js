@@ -4,7 +4,8 @@ import {
   GET_ERRORS,
   GET_STATS,
   FETCH_NEXT,
-  UPDATE_TASK
+  UPDATE_TASK,
+  GET_ALL_TASKS
 } from "./types";
 
 export const updateTask = value => dispatch => {
@@ -77,6 +78,7 @@ export const taskDone = (task_id, pageOffset) => dispatch => {
     .put(`/api/tasks/markdone/${task_id}`)
     .then(res => {
       dispatch(updateTask(pageOffset));
+      dispatch(getAllTasks());
     })
     .catch(err => {
       dispatch({
@@ -90,6 +92,7 @@ export const deleteTask = (task_id, pageOffset) => dispatch => {
     .delete(`/api/tasks/delete/${task_id}`)
     .then(res => {
       dispatch(updateTask(pageOffset));
+      dispatch(getAllTasks());
     })
     .catch(err => {
       dispatch({
@@ -109,6 +112,7 @@ export const createTask = data => dispatch => {
         payload: {}
       });
       dispatch(getTasks());
+      dispatch(getAllTasks());
     })
     .catch(err => {
       dispatch({
@@ -127,6 +131,7 @@ export const getTasks = (initial = 5) => dispatch => {
           type: GET_TASKS,
           payload: { ...res.data, paginate: res2.data.paginate }
         });
+        dispatch(getAllTasks());
       });
     })
     .catch(err => {
@@ -152,6 +157,22 @@ export const getStats = () => dispatch => {
       dispatch({
         type: GET_ERRORS,
         payload: err.response.data
+      })
+    );
+};
+export const getAllTasks = () => dispatch => {
+  axios
+    .get("/api/tasks/")
+    .then(res =>
+      dispatch({
+        type: GET_ALL_TASKS,
+        payload: res.data
+      })
+    )
+    .catch(err =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err
       })
     );
 };
