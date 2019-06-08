@@ -1,12 +1,69 @@
 import axios from "axios";
-import { GET_TASKS, GET_ERRORS, GET_STATS } from "./types";
+import {
+  GET_TASKS,
+  GET_ERRORS,
+  GET_STATS,
+  FETCH_NEXT,
+  UPDATE_TASK
+} from "./types";
 
-export const editTask = data => dispatch => {
+export const updateTask = value => dispatch => {
+  axios
+    .get(`/api/tasks/paginate/next/${value}`)
+    .then(res => {
+      //just to obtain statistics
+      axios.get("/api/tasks/recent").then(res2 => {
+        dispatch({
+          type: UPDATE_TASK,
+          payload: { stats: res2.data.stats, ...res.data }
+        });
+      });
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
+
+export const fetchNext = value => dispatch => {
+  axios
+    .get(`/api/tasks/paginate/next/${value}`)
+    .then(res => {
+      dispatch({
+        type: FETCH_NEXT,
+        payload: res.data
+      });
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
+export const fetchPrev = value => dispatch => {
+  axios
+    .get(`/api/tasks/paginate/prev/${value}`)
+    .then(res => {
+      dispatch({
+        type: FETCH_NEXT,
+        payload: res.data
+      });
+    })
+    .catch(err => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      });
+    });
+};
+export const editTask = (data, pageOffset) => dispatch => {
   axios
     .put(`/api/tasks/edit/${data._id}`, data)
     .then(res => {
-      alert("Task edited SUCCESSFULLY!");
-      dispatch(getTasks());
+      dispatch(updateTask(pageOffset));
     })
     .catch(err => {
       dispatch({
@@ -15,12 +72,11 @@ export const editTask = data => dispatch => {
       });
     });
 };
-export const taskDone = task_id => dispatch => {
+export const taskDone = (task_id, pageOffset) => dispatch => {
   axios
     .put(`/api/tasks/markdone/${task_id}`)
     .then(res => {
-      alert("Task marked as COMPLETED!");
-      dispatch(getTasks());
+      dispatch(updateTask(pageOffset));
     })
     .catch(err => {
       dispatch({
@@ -29,12 +85,11 @@ export const taskDone = task_id => dispatch => {
       });
     });
 };
-export const deleteTask = task_id => dispatch => {
+export const deleteTask = (task_id, pageOffset) => dispatch => {
   axios
     .delete(`/api/tasks/delete/${task_id}`)
     .then(res => {
-      alert("Task deleted SUCCESSFULLY!");
-      dispatch(getTasks());
+      dispatch(updateTask(pageOffset));
     })
     .catch(err => {
       dispatch({
@@ -47,8 +102,12 @@ export const createTask = data => dispatch => {
   axios
     .post("/api/tasks/create", data)
     .then(res => {
-      console.log(res.data);
       alert("Task added SUCCESSFULLY!");
+      //Clear any error that exists before coz the user might not have a task before
+      dispatch({
+        type: GET_ERRORS,
+        payload: {}
+      });
       dispatch(getTasks());
     })
     .catch(err => {
@@ -58,25 +117,22 @@ export const createTask = data => dispatch => {
       });
     });
 };
-//TODO: GET TOTAL COUNT OF TASKS:CREATE A ROUTE FOR IT
-//TODO: GET TOTAL COUNT OF COMPLETED AND UNCOMPLETED
-//TODO: GET THE MOST RECENT 5 TASKS
-//TODO: CALL THE ACTION GET STATS
-export const getTasks = () => dispatch => {
+
+export const getTasks = (initial = 5) => dispatch => {
   axios
     .get("/api/tasks/recent")
     .then(res => {
-      dispatch({
-        type: GET_TASKS,
-        payload: res.data
+      axios.get(`/api/tasks/paginate/next/${initial}`).then(res2 => {
+        dispatch({
+          type: GET_TASKS,
+          payload: { ...res.data, paginate: res2.data.paginate }
+        });
       });
     })
     .catch(err => {
       dispatch({
         type: GET_ERRORS,
-        payload: {
-          errors: err.response.data
-        }
+        payload: err.response.data
       });
     });
 };

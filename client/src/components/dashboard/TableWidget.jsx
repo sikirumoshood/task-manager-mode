@@ -21,7 +21,7 @@ export default function TableWidget({ tasks, ondelete, onedit, ontaskdone }) {
       <td>{task.description}</td>
       <td>
         {" "}
-        <Moment fromNow>{task.deadlineDate}</Moment>
+        <Moment format="DD/MMM/YYYY">{task.created_at}</Moment>
       </td>
       <td>
         {task.done ? (
@@ -31,7 +31,7 @@ export default function TableWidget({ tasks, ondelete, onedit, ontaskdone }) {
         )}
       </td>
       <td>
-        <Moment format="Mo/MMM/YYYY">{task.created_at}</Moment>
+        <Moment fromNow>{task.deadlineDate}</Moment>
       </td>
       <td>
         <Row>
@@ -95,9 +95,9 @@ export default function TableWidget({ tasks, ondelete, onedit, ontaskdone }) {
           <tr>
             <th>Title</th>
             <th>Description</th>
-            <th>Deadline</th>
-            <th>Status</th>
             <th>Created at</th>
+            <th>Status</th>
+            <th>Deadline</th>
             <th>Actions </th>
           </tr>
         </thead>

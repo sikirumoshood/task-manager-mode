@@ -34,7 +34,8 @@ import {
   createTask,
   editTask,
   deleteTask,
-  taskDone
+  taskDone,
+  fetchNext
 } from "../../redux/actions/taskAction";
 import axios from "axios";
 import moment from "moment";
@@ -50,7 +51,10 @@ class Dashboard extends Component {
       addTaskModalIsOpen: false,
       editTaskModalIsOpen: false,
       errors: {},
-      taskToEdit: {}
+      taskToEdit: {},
+      skipValue: 10,
+      next: false,
+      prev: false
     };
   }
 
@@ -78,14 +82,23 @@ class Dashboard extends Component {
 
   handleEditSubmit = e => {
     e.preventDefault();
-    this.props.editTask(this.state.taskToEdit);
+    this.props.editTask(this.state.taskToEdit, this.state.skipValue - 5);
   };
 
   handleTaskDone = task_id => {
     const resp = window.confirm("Are you sure to mark task as COMPLETED? ");
     if (resp) {
-      this.props.taskDone(task_id);
+      this.props.taskDone(task_id, this.state.skipValue - 5);
     }
+  };
+
+  handleNext = value => {
+    this.props.fetchNext(value);
+    this.setState({ skipValue: this.state.skipValue + 5 });
+  };
+  handlePrev = value => {
+    this.props.fetchNext(value);
+    this.setState({ skipValue: this.state.skipValue - 5 });
   };
   fetchDataToEdit = task_id => {
     axios
@@ -103,7 +116,7 @@ class Dashboard extends Component {
 
     const resp = window.confirm("Are you sure about this");
     if (resp) {
-      this.props.deleteTask(task_id);
+      this.props.deleteTask(task_id, this.state.skipValue - 5);
     }
   };
   handleChange = e => {
@@ -219,6 +232,17 @@ class Dashboard extends Component {
     );
   };
   renderLeftPane = () => {
+    if (this.state.errors.tasks) {
+      return (
+        <Col className="col-md-10 m-auto">
+          <div className="alert alert-info">
+            Welcome {this.props.auth.user.name.split(" ")[1]}! It appears you
+            are yet to create a task, click the <b>Add task</b> button below to
+            add one
+          </div>
+        </Col>
+      );
+    }
     return (
       <Col id="left-pane" className="col-md-11">
         <p className="text-muted">
@@ -314,30 +338,34 @@ class Dashboard extends Component {
         <FontAwesomeIcon icon={faListAlt} style={{ color: "purple" }} /> All
         tasks
         <br />
-        <Row className="m-2 p-3" style={{ width: "100%" }}>
-          {isEmpty(this.props.task.tasks) ? (
-            <FontAwesomeIcon
-              className="m-auto"
-              icon={faSpinner}
-              spin
-              style={{ color: "blue" }}
-            />
-          ) : (
-            <TableWidget
-              tasks={this.props.task.tasks}
-              ondelete={this.handleDelete}
-              onedit={this.fetchDataToEdit}
-              ontaskdone={this.handleTaskDone}
-            />
-          )}
-        </Row>
+        {this.state.errors.tasks ? (
+          <p>Please click on Add Task button to create a task</p>
+        ) : (
+          <Row className="m-2 p-3" style={{ width: "100%" }}>
+            {isEmpty(this.props.task.tasks) ? (
+              <FontAwesomeIcon
+                className="m-auto"
+                icon={faSpinner}
+                spin
+                style={{ color: "blue" }}
+              />
+            ) : (
+              <TableWidget
+                tasks={this.props.task.tasks}
+                ondelete={this.handleDelete}
+                onedit={this.fetchDataToEdit}
+                ontaskdone={this.handleTaskDone}
+              />
+            )}
+          </Row>
+        )}
         <Row />
         {this.renderPaginationButtons()}
       </Col>
     );
   };
 
-  renderPaginationButtons() {
+  renderPaginationButtons = () => {
     return (
       <div>
         <Row className="p-5">
@@ -347,22 +375,31 @@ class Dashboard extends Component {
               margin: "5px",
               borderStyle: "none"
             }}
+            onClick={() => {
+              this.handlePrev(this.state.skipValue - 10);
+            }}
+            disabled={!this.state.prev}
           >
             <FontAwesomeIcon icon={faChevronLeft} style={{ color: "black" }} />
           </Button>
+
           <Button
             style={{
               backgroundColor: "#E4E2F2",
               margin: "5px",
               borderStyle: "none"
             }}
+            onClick={() => {
+              this.handleNext(this.state.skipValue);
+            }}
+            disabled={!this.state.next}
           >
             <FontAwesomeIcon icon={faChevronRight} style={{ color: "black" }} />
           </Button>
         </Row>
       </div>
     );
-  }
+  };
 
   handleLogout = () => {
     this.props.logoutUser(this.props.history);
@@ -424,6 +461,12 @@ class Dashboard extends Component {
     if (nextProps.errors) {
       this.setState({ errors: nextProps.errors });
     }
+    if (nextProps.task) {
+      this.setState({
+        next: nextProps.task.paginate.next,
+        prev: nextProps.task.paginate.prev
+      });
+    }
   }
 
   createChart() {
@@ -447,21 +490,7 @@ class Dashboard extends Component {
               "rgba(153, 102, 255, 1)",
               "rgba(255, 159, 64, 1)"
             ],
-            borderWidth: 1
-          },
-          {
-            label: "Vote count 2",
-            data: [3, 11, 5, 7, 2, 18],
-
-            borderColor: [
-              "rgba(255, 99, 132, 1)",
-              "rgba(54, 162, 235, 1)",
-              "rgba(255, 206, 86, 1)",
-              "rgba(75, 192, 192, 1)",
-              "rgba(153, 102, 255, 1)",
-              "rgba(255, 159, 64, 1)"
-            ],
-            borderWidth: 1
+            borderWidth: 5
           }
         ]
       },
@@ -493,5 +522,13 @@ const mapStateToProps = state => ({
 });
 export default connect(
   mapStateToProps,
-  { getTasks, logoutUser, createTask, editTask, deleteTask, taskDone }
+  {
+    getTasks,
+    logoutUser,
+    createTask,
+    editTask,
+    deleteTask,
+    taskDone,
+    fetchNext
+  }
 )(withRouter(Dashboard));

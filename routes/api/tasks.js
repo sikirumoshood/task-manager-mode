@@ -28,13 +28,13 @@ Router.get(
           stats.total = tasks.length;
           stats.completed = tasks.filter(task => task.done === true).length;
           stats.uncompleted = tasks.filter(task => task.done === false).length;
-          return res.json({ tasks: tasks.slice(0, 6), stats });
+          return res.json({ tasks: tasks.slice(0, 5), stats });
         }
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ tasks: "User has no tasks created" });
       })
       .catch(err => {
         console.log(err);
-        return res.status(500).json({ error: "Fetching user data from db" });
+        return res.status(500).json({ task: "Fetching user data from db" });
       });
   }
 );
@@ -98,7 +98,65 @@ Router.get(
       });
   }
 );
+//@route api/tasks/paginate/next/:skip/
+//@desc fetch tasks and skip with a fixed limit of 5, (LOGIC: slice(skip-5,skip+1))
+//@access public
 
+Router.get(
+  "/paginate/next/:skip/",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Task.findOne({ user: req.user.id })
+      .then(userTasks => {
+        if (userTasks) {
+          return res.json({
+            tasks: userTasks.tasks.slice(req.params.skip - 5, req.params.skip),
+            paginate: {
+              next:
+                userTasks.tasks.slice(req.params.skip, req.params.skip + 5)
+                  .length > 0,
+              prev: req.params.skip - 10 >= 0
+            }
+          });
+        }
+        return res.status(404).json({ error: "User not found" });
+      })
+      .catch(err => {
+        console.log(err);
+        return res.status(500).json({ error: "Fetching user data from db" });
+      });
+  }
+);
+
+//@route api/tasks/paginate/prev/:skip/
+//@desc fetch tasks and skip with a fixed limit of 5, (LOGIC: slice(skip-5,skip+1))
+//@access public
+
+Router.get(
+  "/paginate/prev/:skip/",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Task.findOne({ user: req.user.id })
+      .then(userTasks => {
+        if (userTasks) {
+          return res.json({
+            tasks: userTasks.tasks.slice(req.params.skip - 5, req.params.skip),
+            paginate: {
+              next:
+                userTasks.tasks.slice(req.params.skip, req.params.skip + 5)
+                  .length > 0,
+              prev: req.params.skip - 10 >= 0
+            }
+          });
+        }
+        return res.status(404).json({ error: "User not found" });
+      })
+      .catch(err => {
+        console.log(err);
+        return res.status(500).json({ error: "Fetching user data from db" });
+      });
+  }
+);
 //@route api/tasks/markdone/:task_id
 //@desc mark task as completed for the current user
 //@access private
@@ -107,35 +165,33 @@ Router.put(
   "/markdone/:task_id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    Task.findOne({ user: req.user.id })
-      .then(userTask => {
-        //Check if current task with task_id is in the users task list
+    Task.findOne({ user: req.user.id }).then(userTask => {
+      //Check if current task with task_id is in the users task list
 
-        const index = userTask.tasks
-          .map(task => task._id.toString())
-          .indexOf(req.params.task_id.toString());
+      const index = userTask.tasks
+        .map(task => task._id.toString())
+        .indexOf(req.params.task_id.toString());
 
-        if (index < 0) {
-          return res.status(404).json({ msg: "No task exists with that id" });
-        } else {
-          let task = userTask.tasks[index];
+      if (index < 0) {
+        return res.status(404).json({ msg: "No task exists with that id" });
+      } else {
+        let task = userTask.tasks[index];
 
-          
-            (task.done = true);
+        task.done = true;
 
-          userTask.tasks[index] = task;
-          userTask
-            .save()
-            .then(updatedUserTask => {
-              return res.json(updatedUserTask);
-            })
-            .catch(err => {
-              return res
-                .status(500)
-                .json({ msg: "Unable to save or update task" });
-            });
-        }
-      });
+        userTask.tasks[index] = task;
+        userTask
+          .save()
+          .then(updatedUserTask => {
+            return res.json(updatedUserTask);
+          })
+          .catch(err => {
+            return res
+              .status(500)
+              .json({ msg: "Unable to save or update task" });
+          });
+      }
+    });
   }
 );
 //@route api/tasks/
@@ -146,9 +202,9 @@ Router.get(
   "/",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    Task.find({ user: req.user.id })
+    Task.findOne({ user: req.user.id })
       .then(tasks => {
-        return res.json(tasks);
+        return res.json(tasks.tasks);
       })
       .catch(err => {
         return res.status(404).json({ msg: "Error fetching tasks" });
@@ -282,40 +338,35 @@ Router.delete(
   "/delete/:task_id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    
-  
-      //Find task to delete
+    //Find task to delete
 
-      Task.findOne({ user: req.user.id })
-        .then(userTask => {
-          //Check if current task with task_id is in the users task list
+    Task.findOne({ user: req.user.id })
+      .then(userTask => {
+        //Check if current task with task_id is in the users task list
 
-          const index = userTask.tasks
-            .map(task => task._id.toString())
-            .indexOf(req.params.task_id.toString());
+        const index = userTask.tasks
+          .map(task => task._id.toString())
+          .indexOf(req.params.task_id.toString());
 
-          if (index < 0) {
-            return res.status(404).json({ msg: "No task exists with that id" });
-          } else {
-            userTask.tasks.splice(index, 1);
-            userTask
-              .save()
-              .then(updatedUserTask => {
-                return res.json(updatedUserTask);
-              })
-              .catch(err => {
-                return res
-                  .status(500)
-                  .json({ msg: "Unable to save or update task" });
-              });
-          }
-        })
-        .catch(err => {
-          return res
-            .status(404)
-            .json({ msg: "No task with that id was found" });
-        });
-    
+        if (index < 0) {
+          return res.status(404).json({ msg: "No task exists with that id" });
+        } else {
+          userTask.tasks.splice(index, 1);
+          userTask
+            .save()
+            .then(updatedUserTask => {
+              return res.json(updatedUserTask);
+            })
+            .catch(err => {
+              return res
+                .status(500)
+                .json({ msg: "Unable to save or update task" });
+            });
+        }
+      })
+      .catch(err => {
+        return res.status(404).json({ msg: "No task with that id was found" });
+      });
   }
 );
 

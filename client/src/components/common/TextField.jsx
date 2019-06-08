@@ -40,7 +40,7 @@ class TextField extends Component {
         <div>
           {this.props.error && (
             <span style={{ color: "red" }}>
-              <Zoom delay="300" left cascade>
+              <Zoom delay={300} left cascade>
                 <small>{this.props.error}</small>
               </Zoom>
             </span>
