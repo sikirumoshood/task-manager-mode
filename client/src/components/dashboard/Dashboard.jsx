@@ -474,7 +474,7 @@ class Dashboard extends Component {
           {
             label: "TASK ANALYSIS",
             data: [this.state.stats.completed, this.state.stats.uncompleted],
-            backgroundColor: ["rgba(255,105,145,0.6)", "rgba(155,100,210,0.6)"]
+            backgroundColor: ["rgba(255,105,145,0.8)", "rgba(155,100,210,0.8)"]
           }
         ]
       }
@@ -488,7 +488,6 @@ class Dashboard extends Component {
     this.props.getTasks();
 
     animateTextField();
-    // this.createChart();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
@@ -509,58 +508,15 @@ class Dashboard extends Component {
                 nextProps.task.stats.uncompleted
               ],
               backgroundColor: [
-                "rgba(255,105,145,0.6)",
-                "rgba(155,100,210,0.6)"
+                "rgba(255,105,145,0.9)",
+                "rgba(155,100,210,0.9)"
               ]
             }
           ]
         }
       });
-      // this.updateChartData();
     }
   }
-
-  //TODO SYNCHRONIZE CHART
-  createChart = () => {
-    const ctx = document.getElementById("myChart").getContext("2d");
-
-    var chart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        datasets: [
-          {
-            fill: true, //Don't show area under curve
-            label: "COMPLETED-TASKS",
-            data: [this.state.stats.completed],
-
-            borderColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
-            backgroundColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
-            borderWidth: 2
-          },
-          {
-            fill: true, //Don't show area under curve
-            label: "UNCOMPLETED-TASKS",
-            data: [this.state.stats.uncompleted],
-
-            borderColor: ["rgba(54, 162, 235, 1)"],
-            backgroundColor: ["rgba(54, 162, 235, 1)"],
-            borderWidth: 2
-          }
-        ]
-      },
-      options: {
-        scales: {
-          yAxes: [
-            {
-              ticks: {
-                beginAtZero: true
-              }
-            }
-          ]
-        }
-      }
-    });
-  };
 }
 
 Dashboard.propTypes = {
