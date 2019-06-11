@@ -8,10 +8,10 @@ export default function BlueTop({ text }) {
         params={{
           particles: {
             number: {
-              value: 50
+              value: 23
             },
             size: {
-              value: 6
+              value: 3
             }
           },
           interactivity: {
